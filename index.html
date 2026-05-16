@@ -1,0 +1,1773 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Макс Вегас</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Georgia', serif;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('background.png') center/cover no-repeat;
+            z-index: 0;
+        }
+
+        .flame-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, 
+                rgba(255, 69, 0, 0) 0%, 
+                rgba(255, 69, 0, 0.05) 30%,
+                rgba(255, 140, 0, 0.1) 50%,
+                rgba(255, 0, 0, 0.15) 70%,
+                rgba(139, 0, 0, 0.2) 100%);
+            animation: flameFlicker 3s infinite alternate;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        @keyframes flameFlicker {
+            0% { opacity: 0.6; transform: scale(1); }
+            25% { opacity: 0.8; transform: scale(1.02); }
+            50% { opacity: 0.5; transform: scale(0.98); }
+            75% { opacity: 0.9; transform: scale(1.03); }
+            100% { opacity: 0.7; transform: scale(1.01); }
+        }
+
+        .sparks {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .spark {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #ff6600;
+            border-radius: 50%;
+            animation: sparkFly 2s infinite;
+            box-shadow: 0 0 6px #ff4500, 0 0 12px #ff8c00;
+        }
+
+        @keyframes sparkFly {
+            0% { transform: translateY(0) translateX(0) scale(1); opacity: 1; }
+            50% { opacity: 0.8; transform: translateY(-50px) translateX(10px) scale(1.5); }
+            100% { transform: translateY(-100px) translateX(-10px) scale(0); opacity: 0; }
+        }
+
+        /* Главное меню */
+        .menu-container {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+            background: transparent;
+            padding: 50px 60px;
+        }
+
+        .logo {
+            width: 600px;
+            height: auto;
+            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.9));
+            animation: logoPulse 2s infinite ease-in-out;
+        }
+
+        @keyframes logoPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
+
+        .buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            width: 100%;
+            max-width: 350px;
+        }
+
+        .btn {
+            padding: 20px 60px;
+            font-size: 16px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            border: 3px solid #ffd700;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            color: #fff;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.9);
+            box-shadow: 0 0 20px rgba(255, 69, 0, 0.6);
+            font-family: 'Georgia', serif;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: linear-gradient(45deg, #ff0000, #ff6600, #ffcc00, #ff6600, #ff0000);
+            border-radius: 15px;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            animation: fireBorder 1.5s linear infinite;
+        }
+
+        @keyframes fireBorder {
+            0% { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(360deg); }
+        }
+
+        .btn:hover::before { opacity: 1; }
+        .btn:active { transform: scale(0.95) !important; transition: transform 0.1s ease; }
+
+        .btn-play { background: linear-gradient(180deg, #cc0000 0%, #8b0000 100%); }
+        .btn-play:hover { background: linear-gradient(180deg, #ff0000 0%, #cc0000 100%); transform: scale(1.08); }
+        .btn-settings { background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1e 100%); border-color: #c0c0c0; }
+        .btn-settings:hover { background: linear-gradient(180deg, #2a2a4e 0%, #1a1a2e 100%); transform: scale(1.08); }
+
+        .btn-easy { background: linear-gradient(180deg, #228b22 0%, #006400 100%); border-color: #90ee90; }
+        .btn-easy:hover { background: linear-gradient(180deg, #32cd32 0%, #228b22 100%); transform: scale(1.08); }
+        .btn-normal { background: linear-gradient(180deg, #daa520 0%, #b8860b 100%); border-color: #ffd700; }
+        .btn-normal:hover { background: linear-gradient(180deg, #ffd700 0%, #daa520 100%); transform: scale(1.08); }
+        .btn-hard { background: linear-gradient(180deg, #8b0000 0%, #4a0000 100%); border-color: #ff4444; }
+        .btn-hard:hover { background: linear-gradient(180deg, #ff0000 0%, #8b0000 100%); transform: scale(1.08); }
+
+        /* Дисклеймер */
+        .disclaimer-overlay {
+            display: flex;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(8px);
+        }
+
+        .disclaimer-content {
+            background: linear-gradient(180deg, #1a0a0a 0%, #0a0505 100%);
+            border: 3px solid #ff0000;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 700px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 0 50px rgba(255, 0, 0, 0.5);
+        }
+
+        .disclaimer-title { font-size: 48px; color: #ff0000; margin-bottom: 30px; }
+        .disclaimer-text { font-size: 20px; color: #fff; line-height: 1.8; margin-bottom: 25px; }
+        .disclaimer-warning { color: #ff4444; font-weight: bold; font-size: 22px; margin: 20px 0; }
+        .disclaimer-age { display: inline-block; background: #ff0000; color: #fff; padding: 10px 25px; border-radius: 10px; font-size: 24px; font-weight: bold; margin: 15px 0; }
+        .disclaimer-enter { margin-top: 30px; font-size: 22px; color: #ffd700; animation: blinkText 1.5s infinite; }
+
+        @keyframes blinkText {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* Окно сложности */
+        .difficulty-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 500;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .difficulty-content {
+            background: linear-gradient(180deg, #0a0a1a 0%, #050510 100%);
+            border: 3px solid #ffd700;
+            border-radius: 25px;
+            padding: 50px 60px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .difficulty-title { font-size: 42px; color: #ffd700; margin-bottom: 20px; }
+        .difficulty-subtitle { font-size: 20px; color: #ccc; margin-bottom: 35px; }
+        .difficulty-buttons { display: flex; flex-direction: column; gap: 20px; }
+        .difficulty-desc { font-size: 16px; color: #aaa; margin-top: 5px; }
+        .difficulty-back { margin-top: 25px; background: transparent; border: 2px solid #666; color: #999; padding: 12px 35px; font-size: 18px; border-radius: 10px; cursor: pointer; }
+        .difficulty-back:hover { border-color: #fff; color: #fff; }
+
+        /* Игровой экран */
+        .game-screen {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 10;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .slot-machine {
+            background: linear-gradient(180deg, #1a3a3a 0%, #0d2a2a 100%);
+            border: 6px solid #ffd700;
+            border-radius: 25px;
+            padding: 20px;
+            box-shadow: 0 0 40px rgba(255, 215, 0, 0.5), 0 0 80px rgba(255, 140, 0, 0.3), inset 0 0 20px rgba(0, 255, 200, 0.1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .pause-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 28px;
+            cursor: pointer;
+            color: #ffd700;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.5);
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #ffd700;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+            transition: all 0.3s ease;
+            animation: pauseBtnPulse 2s ease-in-out infinite alternate;
+        }
+
+        .slot-machine::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 70%);
+            animation: machineGlow 3s ease-in-out infinite alternate;
+            pointer-events: none;
+        }
+
+        @keyframes machineGlow {
+            0% { transform: scale(1); opacity: 0.5; }
+            100% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .christmas-lights {
+            position: absolute;
+            top: -20px;
+            left: 0;
+            width: 100%;
+            height: 15px;
+            display: flex;
+            justify-content: space-around;
+            z-index: 1;
+        }
+
+        .light-bulb {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: glowBulb 0.8s infinite alternate;
+        }
+
+        @keyframes glowBulb {
+            0% { box-shadow: 0 0 5px currentColor; }
+            100% { box-shadow: 0 0 20px currentColor, 0 0 40px currentColor; }
+        }
+
+        .slots-container {
+            display: flex;
+            gap: 15px;
+            margin: 15px 0;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 15px;
+            border: 2px solid #ffd700;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .slot {
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 50%, #80deea 100%);
+            border-radius: 12px;
+            border: 3px solid #ffd700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            box-shadow: inset 0 0 15px rgba(0, 100, 100, 0.3), 0 0 10px rgba(0, 255, 200, 0.5);
+            position: relative;
+            z-index: 2;
+        }
+
+        .slot img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .balance-panel {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            margin: 15px 0;
+            color: #ffd700;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px 25px;
+            border-radius: 15px;
+            border: 2px solid #ffd700;
+        }
+
+        .balance-panel span {
+            animation: balanceGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes balanceGlow {
+            0% { text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
+            100% { text-shadow: 0 0 20px rgba(255, 215, 0, 1), 0 0 30px rgba(255, 215, 0, 0.5); }
+        }
+
+        .spin-btn {
+            padding: 18px 50px;
+            font-size: 24px;
+            background: linear-gradient(180deg, #ff0000 0%, #8b0000 100%);
+            color: #fff;
+            border: 3px solid #ffd700;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.6), inset 0 0 10px rgba(255, 255, 255, 0.2);
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .spin-btn::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+            animation: btnPulse 1.5s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes btnPulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .spin-btn:hover {
+            background: linear-gradient(180deg, #ff3333 0%, #cc0000 100%);
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.8);
+        }
+
+        .spin-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .buy-money-btn {
+            padding: 12px 30px;
+            font-size: 18px;
+            background: linear-gradient(180deg, #228b22 0%, #006400 100%);
+            color: #fff;
+            border: 2px solid #90ee90;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 0 15px rgba(34, 139, 34, 0.6);
+            transition: all 0.3s ease;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.7);
+        }
+
+        .buy-money-btn:hover {
+            background: linear-gradient(180deg, #32cd32 0%, #228b22 100%);
+            box-shadow: 0 0 25px rgba(50, 205, 50, 1), 0 0 40px rgba(50, 205, 50, 0.5);
+            transform: scale(1.08);
+        }
+
+        .pause-btn {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 30px;
+            cursor: pointer;
+            color: #ffd700;
+            z-index: 20;
+            background: rgba(0, 0, 0, 0.5);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #ffd700;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+            transition: all 0.3s ease;
+            animation: pauseBtnPulse 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes pauseBtnPulse {
+            0% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.5); }
+            100% { box-shadow: 0 0 30px rgba(255, 215, 0, 1), 0 0 45px rgba(255, 215, 0, 0.5); }
+        }
+
+        .pause-btn:hover {
+            background: rgba(0, 0, 0, 0.8);
+            box-shadow: 0 0 25px rgba(255, 215, 0, 1), 0 0 50px rgba(255, 215, 0, 0.6);
+            transform: scale(1.1);
+        }
+
+        /* Модальные окна */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0; top: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            position: relative;
+            padding: 35px;
+            width: 420px;
+            background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1e 100%);
+            border: 2px solid #ffd700;
+            border-radius: 20px;
+            box-shadow: 0 0 50px rgba(255, 69, 0, 0.6);
+            color: #fff;
+            text-align: center;
+        }
+
+        .close {
+            position: absolute;
+            right: 20px;
+            top: 15px;
+            color: #ffd700;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover { color: #fff; transform: scale(1.2); }
+
+        .modal h2 { margin-bottom: 30px; font-size: 32px; color: #ffd700; }
+
+        .volume-control { margin: 25px 0; }
+        .volume-control label { display: block; margin-bottom: 12px; font-size: 20px; color: #ddd; }
+
+        input[type="range"] {
+            width: 85%;
+            height: 10px;
+            border-radius: 5px;
+            background: #333;
+            outline: none;
+            -webkit-appearance: none;
+            margin: 10px 0;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.9);
+            border: 2px solid #fff;
+        }
+
+        .volume-value {
+            display: inline-block;
+            margin-left: 10px;
+            font-size: 18px;
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .modal .btn { font-size: 20px; padding: 14px 45px; margin-top: 25px; }
+
+        /* Магазин денег */
+        .shop-item {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 215, 0, 0.05) 100%);
+            border: 2px solid #ffd700;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .shop-item::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.2) 0%, transparent 70%);
+            animation: shopItemGlow 2s ease-in-out infinite alternate;
+            pointer-events: none;
+        }
+
+        @keyframes shopItemGlow {
+            0% { transform: scale(1); opacity: 0.5; }
+            100% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .shop-item:hover {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.3) 0%, rgba(255, 215, 0, 0.1) 100%);
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.8), 0 0 50px rgba(255, 215, 0, 0.4);
+            transform: scale(1.05);
+            border-color: #fff;
+        }
+
+        .shop-item strong {
+            font-size: 24px;
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+        }
+
+        /* Оверлей для картинок */
+        .image-overlay {
+            display: none;
+            position: fixed;
+            z-index: 200;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .image-overlay img {
+            max-width: 400px;
+            max-height: 400px;
+            animation: bounceIn 0.5s ease;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        /* Мини-игра */
+        .minigame-overlay {
+            display: none;
+            position: fixed;
+            z-index: 200;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, #1a0a0a 0%, #0a0505 50%, #2a0a0a 100%);
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .minigame-fire {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(to top, rgba(255, 69, 0, 0.8), rgba(255, 102, 0, 0.6), transparent);
+            animation: fireBurn 0.5s infinite alternate;
+            box-shadow: 0 0 50px rgba(255, 69, 0, 0.5);
+        }
+
+        @keyframes fireBurn {
+            0% { height: 200px; opacity: 0.8; transform: scaleY(1); }
+            100% { height: 250px; opacity: 1; transform: scaleY(1.1); }
+        }
+
+        /* Анимация огня на фоне */
+        .minigame-overlay::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 300px;
+            background: radial-gradient(circle at 50% 100%, rgba(255, 69, 0, 0.4) 0%, transparent 70%);
+            animation: fireGlow 2s ease-in-out infinite alternate;
+            pointer-events: none;
+        }
+
+        @keyframes fireGlow {
+            0% { opacity: 0.5; transform: scale(1); }
+            100% { opacity: 0.8; transform: scale(1.2); }
+        }
+
+        .petya-target {
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transition: transform 0.1s ease;
+            z-index: 1;
+        }
+
+        .petya-target:active {
+            transform: scale(0.95);
+        }
+
+        .minigame-timer {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+            color: #ffd700;
+            z-index: 1;
+        }
+
+        .minigame-clicks {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 24px;
+            color: #ffd700;
+            z-index: 1;
+        }
+
+        .minigame-info {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 30px;
+            color: #ff0000;
+            z-index: 1;
+            text-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+            font-weight: bold;
+        }
+
+        .exit-btn {
+            margin-top: 20px;
+            padding: 10px 30px;
+            font-size: 18px;
+            background: #333;
+            color: #fff;
+            border: 2px solid #fff;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .exit-btn:hover {
+            background: #555;
+        }
+
+        /* GAME OVER экран */
+        .gameover-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .gameover-content {
+            background: linear-gradient(180deg, #1a0a0a 0%, #0a0505 100%);
+            border: 4px solid #ff0000;
+            border-radius: 30px;
+            padding: 60px 80px;
+            text-align: center;
+            box-shadow: 0 0 80px rgba(255, 0, 0, 0.7);
+            animation: gameoverPulse 2s infinite;
+        }
+
+        @keyframes gameoverPulse {
+            0%, 100% { box-shadow: 0 0 80px rgba(255, 0, 0, 0.7); }
+            50% { box-shadow: 0 0 120px rgba(255, 0, 0, 1); }
+        }
+
+        .gameover-title {
+            font-size: 80px;
+            color: #ff0000;
+            margin-bottom: 20px;
+            text-shadow: 0 0 30px rgba(255, 0, 0, 1), 0 0 60px rgba(255, 0, 0, 0.5);
+            animation: gameoverBlink 1s infinite;
+        }
+
+        @keyframes gameoverBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .gameover-text {
+            font-size: 28px;
+            color: #fff;
+            margin-bottom: 40px;
+        }
+
+        .gameover-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .spinning {
+            animation: slotSpin 0.1s linear infinite;
+            filter: blur(2px);
+        }
+
+        @keyframes slotSpin {
+            0% { transform: translateY(-20px); opacity: 0.7; }
+            50% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(20px); opacity: 0.7; }
+        }
+
+        /* Гирлянды */
+        .garland-top, .garland-bottom {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: transparent;
+            z-index: 0;
+        }
+
+        .garland-top { top: -10px; }
+        .garland-bottom { bottom: -10px; }
+
+        .garland-bulb {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: glowBulb 0.6s infinite alternate;
+            box-shadow: 0 0 10px currentColor, 0 0 20px currentColor;
+        }
+
+        @keyframes glowBulb {
+            0% { 
+                box-shadow: 0 0 5px currentColor, 0 0 10px currentColor;
+                transform: scale(1);
+            }
+            100% { 
+                box-shadow: 0 0 20px currentColor, 0 0 40px currentColor, 0 0 60px currentColor;
+                transform: scale(1.3);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background"></div>
+    <div class="flame-overlay"></div>
+    <div class="sparks" id="sparksContainer"></div>
+
+    <!-- Дисклеймер -->
+    <div class="disclaimer-overlay" id="disclaimerOverlay">
+        <div class="disclaimer-content">
+            <div class="disclaimer-title">⚠️ ВНИМАНИЕ ⚠️</div>
+            <div class="disclaimer-text">Данная игра является вымышленным развлекательным продуктом в жанре казино-слотов.</div>
+            <div class="disclaimer-warning">🚫 Игра не пропагандирует насилие и не призывает к причинению вреда безобидным людям или любым живым существам.</div>
+            <div class="disclaimer-text">Все персонажи, включая голову Пети, являются вымышленными и используются исключительно в юмористическом контексте. Оружие и другие элементы представлены как игровые символы и не имеют отношения к реальному насилию.</div>
+            <div class="disclaimer-age">🔞 18+ ТОЛЬКО ДЛЯ ВЗРОСЛЫХ 🔞</div>
+            <div class="disclaimer-text">Продолжая игру, вы подтверждаете, что вам исполнилось 18 лет, и вы осознаете, что это всего лишь игра-казино, созданная для развлечения.</div>
+            <div class="disclaimer-enter">Нажмите ENTER чтобы продолжить ▶</div>
+        </div>
+    </div>
+
+    <!-- Окно сложности -->
+    <div class="difficulty-overlay" id="difficultyOverlay">
+        <div class="difficulty-content">
+            <div class="difficulty-title">🎯 ВЫБОР СЛОЖНОСТИ 🎯</div>
+            <div class="difficulty-subtitle">Выберите уровень сложности для игры</div>
+            <div class="difficulty-buttons">
+                <button class="btn btn-easy" id="btnEasy">👶 Карапуз<div class="difficulty-desc">Лёгкий режим</div></button>
+                <button class="btn btn-normal" id="btnNormal">🎮 Обычный игрок<div class="difficulty-desc">Нормальный режим</div></button>
+                <button class="btn btn-hard" id="btnHard">💀 Профессионал<div class="difficulty-desc">Сложный режим</div></button>
+            </div>
+            <button class="difficulty-back" id="btnBackFromDifficulty">↩ Назад в меню</button>
+        </div>
+    </div>
+
+    <!-- Главное меню -->
+    <div class="menu-container" id="mainMenu" style="display: none;">
+        <img src="logo.png" alt="Логотип" class="logo" id="logo">
+        <div class="buttons">
+            <button class="btn btn-play" id="btnPlay">🎰 Играть 🎰</button>
+            <button class="btn btn-settings" id="btnSettings">⚙️ Настройки ⚙️</button>
+        </div>
+    </div>
+
+    <!-- Игровой экран -->
+    <div class="game-screen" id="gameScreen">
+        <div class="slot-machine" id="slotMachine">
+            <div class="pause-btn" id="pauseBtn">⏸</div>
+            <div class="garland-top" id="garlandTop"></div>
+            <div class="garland-bottom" id="garlandBottom"></div>
+            <div class="slots-container" id="slotsContainer">
+                <div class="slot"><img src="" alt="slot" id="slot0"></div>
+                <div class="slot"><img src="" alt="slot" id="slot1"></div>
+                <div class="slot"><img src="" alt="slot" id="slot2"></div>
+            </div>
+            <div class="balance-panel">
+                <span>💰 Баланс: <span id="balance">1000</span> ₽</span>
+                <span>💎 Выигрыш: <span id="winAmount">0</span> ₽</span>
+                <button class="buy-money-btn" id="buyMoneyBtn">🛒 Купить деньги</button>
+            </div>
+            <button class="spin-btn" id="spinBtn">🎰 Пуск за 5 ₽ 🎰</button>
+        </div>
+    </div>
+
+    <!-- Модальное окно настроек -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <span class="close" id="closeSettingsModal">&times;</span>
+            <h2>🎵 Настройки 🎵</h2>
+            <div class="volume-control">
+                <label for="musicVolume">🔊 Громкость музыки</label>
+                <input type="range" id="musicVolume" min="0" max="1" step="0.1" value="0.5">
+                <span class="volume-value" id="musicValue">50%</span>
+            </div>
+            <div class="volume-control">
+                <label for="sfxVolume">🔔 Громкость звуков</label>
+                <input type="range" id="sfxVolume" min="0" max="1" step="0.1" value="0.7">
+                <span class="volume-value" id="sfxValue">70%</span>
+            </div>
+            <button class="btn btn-settings" id="btnCloseSettings">Закрыть</button>
+        </div>
+    </div>
+
+    <!-- Модальное окно паузы -->
+    <div class="modal" id="pauseModal">
+        <div class="modal-content">
+            <span class="close" id="closePauseModal">&times;</span>
+            <h2>⏸ Пауза</h2>
+            <div class="volume-control">
+                <label for="pauseMusicVolume">🔊 Громкость музыки</label>
+                <input type="range" id="pauseMusicVolume" min="0" max="1" step="0.1" value="0.5">
+                <span class="volume-value" id="pauseMusicValue">50%</span>
+            </div>
+            <div class="volume-control">
+                <label for="pauseSfxVolume">🔔 Громкость звуков</label>
+                <input type="range" id="pauseSfxVolume" min="0" max="1" step="0.1" value="0.7">
+                <span class="volume-value" id="pauseSfxValue">70%</span>
+            </div>
+            <button class="btn btn-settings" id="btnContinue">Продолжить</button>
+            <button class="exit-btn" id="btnExitToMenu">🚪 Выйти в меню</button>
+        </div>
+    </div>
+
+    <!-- Магазин денег -->
+    <div class="modal" id="shopModal">
+        <div class="modal-content">
+            <span class="close" id="closeShopModal">&times;</span>
+            <h2>🛒 Магазин денег</h2>
+            <p style="color:#ffd700; margin-bottom:15px;">Обменяйте выигранные деньги на баланс</p>
+            <div class="shop-item" data-cost="100" data-give="1000">
+                <strong>1000 ₽</strong> за 100 выигранных ₽
+            </div>
+            <div class="shop-item" data-cost="3000" data-give="10000">
+                <strong>10000 ₽</strong> за 3000 выигранных ₽
+            </div>
+            <div class="shop-item" data-cost="50000" data-give="100000">
+                <strong>100000 ₽</strong> за 50000 выигранных ₽
+            </div>
+            <p style="color:#aaa; margin-top:10px;">Ваш выигрыш: <span id="shopWinAmount">0</span> ₽</p>
+        </div>
+    </div>
+
+    <!-- Оверлей для картинок -->
+    <div class="image-overlay" id="imageOverlay">
+        <img src="" alt="overlay" id="overlayImage">
+    </div>
+
+    <!-- Мини-игра -->
+    <div class="minigame-overlay" id="minigameOverlay">
+        <div class="minigame-fire"></div>
+        <div class="minigame-timer" id="minigameTimer">⏱ 60с</div>
+        <div class="minigame-clicks" id="minigameClicks">👊 0/10</div>
+        <div class="minigame-info" id="minigameInfo">УБЕЙ ПЕТЮ!</div>
+        <img src="normal_petya.png" alt="Петя" class="petya-target" id="petyaTarget">
+    </div>
+
+    <!-- GAME OVER экран -->
+    <div class="gameover-overlay" id="gameoverOverlay">
+        <div class="gameover-content">
+            <h1 class="gameover-title">GAME OVER</h1>
+            <p class="gameover-text">У вас закончились деньги!</p>
+            <div class="gameover-buttons">
+                <button class="btn btn-play" id="btnRetry">🔄 Повторить</button>
+                <button class="btn btn-settings" id="btnExitGame">🚪 Выйти</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // === Аудио элементы ===
+        const mainMenuMusic = new Audio('main_menu.mp3');
+        mainMenuMusic.loop = true;
+        mainMenuMusic.volume = 0.5;
+        
+        const bgMusic = new Audio('evil_casino.mp3');
+        bgMusic.loop = true;
+        bgMusic.volume = 0.5;
+
+        const clickSound = new Audio('click_button.mp3');
+        clickSound.volume = 0.7;
+
+        const moneySound = new Audio('money.mp3');
+        const chinazesSound = new Audio('chinazes.mp3');
+        const yumSound = new Audio('yum!.mp3');
+        const tuzSound = new Audio('Michail_Krug_Tuz.mp3');
+        const youLoseSound = new Audio('you_lose.mp3');
+        const winnerSound = new Audio('winner.mp3');
+        const sexyGirlSound = new Audio('sexy_girl.mp3');
+        const killPetyaMusic = new Audio('kill_petya.mp3');
+        killPetyaMusic.loop = true;
+        killPetyaMusic.volume = 0.5;
+        const mechanicalTickingSound = new Audio('mechanical_analog_ticking.mp3');
+        mechanicalTickingSound.loop = true;
+        mechanicalTickingSound.volume = 0.4;
+
+        // Инициализация громкости для всех звуковых эффектов
+        function initSoundVolumes() {
+            clickSound.volume = sfxVolume;
+            moneySound.volume = sfxVolume;
+            chinazesSound.volume = sfxVolume;
+            yumSound.volume = sfxVolume;
+            tuzSound.volume = sfxVolume;
+            youLoseSound.volume = sfxVolume;
+            winnerSound.volume = sfxVolume;
+            sexyGirlSound.volume = sfxVolume;
+            mechanicalTickingSound.volume = sfxVolume;
+        }
+
+        // Звуки Пети
+        const painSounds = [
+            new Audio('pain_petya1.wav'),
+            new Audio('pain_petya2.wav'),
+            new Audio('pain_petya3.wav'),
+            new Audio('pain_petya4.wav')
+        ];
+
+        let musicVolume = 0.5;
+        let sfxVolume = 0.7;
+        let disclaimerAccepted = false;
+        let difficulty = 'normal';
+        let balance = 1000;
+        let winBalance = 0;
+        let isSpinning = false;
+        let minigameActive = false;
+        let minigameClicks = 0;
+        let minigameLevel = 0;
+        let minigameTimer = 60;
+        let minigameInterval = null;
+        let bgMusicPausedForOverlay = false;
+        let currentMusic = null; // Текущая воспроизводимая музыка
+
+        // Символы слотов
+        const symbols = [
+            'gun(symbol_slot).png',
+            'bloody_knife(symbol_slot).png',
+            'seven(symbol_slot).png',
+            'brilliant(symbol_slot).png',
+            'vodka(symbol_slot).png',
+            'dead_head_petya(symbol_slot).png',
+            'money_x1(symbol_slot).png',
+            'money_x2(symbol_slot).png',
+            'money_x3(symbol_slot).png',
+            'strawberry(symbol_slot).png',
+            'tuz(symbol_slot).png',
+            'jackpot(symbol_slot).png',
+            'playboy_jurnal(symbol_slot).png',
+            'you_lose(symbol_slot).png'
+        ];
+
+        // Веса символов по сложности
+        const weightsByDifficulty = {
+            easy: { high: 10, medium: 8, low: 3, veryLow: 1 },
+            normal: { high: 3, medium: 5, low: 8, veryLow: 5 },
+            hard: { high: 0.5, medium: 2, low: 5, veryLow: 10 }
+        };
+
+        // DOM элементы
+        const disclaimerOverlay = document.getElementById('disclaimerOverlay');
+        const difficultyOverlay = document.getElementById('difficultyOverlay');
+        const mainMenu = document.getElementById('mainMenu');
+        const gameScreen = document.getElementById('gameScreen');
+        const settingsModal = document.getElementById('settingsModal');
+        const pauseModal = document.getElementById('pauseModal');
+        const shopModal = document.getElementById('shopModal');
+        const imageOverlay = document.getElementById('imageOverlay');
+        const overlayImage = document.getElementById('overlayImage');
+        const minigameOverlay = document.getElementById('minigameOverlay');
+
+        function createSparks() {
+            const container = document.getElementById('sparksContainer');
+            for (let i = 0; i < 20; i++) {
+                const spark = document.createElement('div');
+                spark.classList.add('spark');
+                spark.style.left = Math.random() * 100 + '%';
+                spark.style.top = (50 + Math.random() * 50) + '%';
+                spark.style.animationDelay = Math.random() * 2 + 's';
+                spark.style.animationDuration = (1.5 + Math.random() * 2) + 's';
+                const colors = ['#ff6600', '#ff4500', '#ffd700', '#ff8c00', '#ff0000'];
+                spark.style.background = colors[Math.floor(Math.random() * colors.length)];
+                spark.style.boxShadow = `0 0 6px ${spark.style.background}`;
+                container.appendChild(spark);
+            }
+        }
+
+        function createGarlands() {
+            const garlandTop = document.getElementById('garlandTop');
+            const garlandBottom = document.getElementById('garlandBottom');
+            const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ff6600', '#ff1493', '#00ced1'];
+            
+            [garlandTop, garlandBottom].forEach(garland => {
+                for (let i = 0; i < 35; i++) {
+                    const bulb = document.createElement('div');
+                    bulb.classList.add('garland-bulb');
+                    bulb.style.left = (i * 2.8) + '%';
+                    bulb.style.backgroundColor = colors[i % colors.length];
+                    bulb.style.color = colors[i % colors.length];
+                    bulb.style.animationDelay = (Math.random() * 0.6) + 's';
+                    bulb.style.animationDuration = (0.5 + Math.random() * 0.4) + 's';
+                    garland.appendChild(bulb);
+                }
+            });
+        }
+
+        function playSound(sound) {
+            if (sound) {
+                sound.currentTime = 0;
+                sound.volume = sfxVolume;
+                sound.play().catch(e => console.log('Sound error:', e));
+            }
+        }
+
+        function updateBalance() {
+            document.getElementById('balance').textContent = balance;
+            document.getElementById('winAmount').textContent = winBalance;
+            document.getElementById('shopWinAmount').textContent = winBalance;
+        }
+
+        function getRandomSymbol() {
+            const w = weightsByDifficulty[difficulty];
+            const pool = [];
+            
+            // Высокие выигрыши (seven, brilliant, jackpot, playboy)
+            for (let i = 0; i < w.veryLow * 10; i++) {
+                pool.push('seven(symbol_slot).png');
+                pool.push('brilliant(symbol_slot).png');
+                pool.push('jackpot(symbol_slot).png');
+                pool.push('playboy_jurnal(symbol_slot).png');
+            }
+            
+            // Средние выигрыши (money_x3, tuz, bloody_knife, gun)
+            for (let i = 0; i < w.low * 10; i++) {
+                pool.push('money_x3(symbol_slot).png');
+                pool.push('tuz(symbol_slot).png');
+                pool.push('bloody_knife(symbol_slot).png');
+                pool.push('gun(symbol_slot).png');
+            }
+            
+            // Низкие выигрыши (money_x2, strawberry, vodka)
+            for (let i = 0; i < w.medium * 10; i++) {
+                pool.push('money_x2(symbol_slot).png');
+                pool.push('strawberry(symbol_slot).png');
+                pool.push('vodka(symbol_slot).png');
+            }
+            
+            // Обычные (money_x1, dead_head_petya)
+            for (let i = 0; i < w.high * 10; i++) {
+                pool.push('money_x1(symbol_slot).png');
+                pool.push('dead_head_petya(symbol_slot).png');
+            }
+            
+            // you_lose
+            for (let i = 0; i < w.veryLow * 15; i++) {
+                pool.push('you_lose(symbol_slot).png');
+            }
+            
+            return pool[Math.floor(Math.random() * pool.length)];
+        }
+
+        function showOverlayImage(imgSrc, duration, sound = null) {
+            overlayImage.src = imgSrc;
+            imageOverlay.style.display = 'flex';
+            
+            // Утихаем фоновую музыку при показе картинок
+            if (sound && !bgMusic.paused) {
+                bgMusicPausedForOverlay = true;
+                const fadeOutInterval = setInterval(() => {
+                    if (bgMusic.volume > 0.1) {
+                        bgMusic.volume -= 0.1;
+                    } else {
+                        clearInterval(fadeOutInterval);
+                        bgMusic.pause();
+                    }
+                }, 200);
+                sound.volume = sfxVolume;
+                sound.currentTime = 0;
+                sound.play().catch(e => console.log('Sound error:', e));
+            } else if (sound) {
+                // Если музыка уже на паузе, просто воспроизводим звук
+                sound.volume = sfxVolume;
+                sound.currentTime = 0;
+                sound.play().catch(e => console.log('Sound error:', e));
+            }
+            
+            setTimeout(() => {
+                imageOverlay.style.display = 'none';
+                // Восстанавливаем фоновую музыку
+                if (bgMusicPausedForOverlay) {
+                    bgMusic.volume = 0;
+                    bgMusic.play().catch(() => {});
+                    bgMusicPausedForOverlay = false;
+                    const fadeInInterval = setInterval(() => {
+                        if (bgMusic.volume < musicVolume) {
+                            bgMusic.volume += 0.05;
+                        } else {
+                            clearInterval(fadeInInterval);
+                        }
+                    }, 200);
+                }
+            }, duration);
+        }
+
+        function processWin(symbols) {
+            let win = 0;
+            const counts = {};
+            symbols.forEach(s => {
+                counts[s] = (counts[s] || 0) + 1;
+            });
+
+            // Проверяем, все ли слоты одинаковые (для картинок с музыкой)
+            const allSame = symbols.every(s => s === symbols[0]);
+
+            // Выигрыш только при 3 одинаковых символах
+            if (allSame && symbols.length === 3) {
+                const symbol = symbols[0];
+                
+                // Джекпот - все jackpot
+                if (symbol === 'jackpot(symbol_slot).png') {
+                    win += 10000000;
+                    setTimeout(() => {
+                        showOverlayImage('winner.png', 12000, winnerSound);
+                    }, 500);
+                }
+                // Seven или brilliant - все одинаковые
+                else if (symbol === 'seven(symbol_slot).png' || symbol === 'brilliant(symbol_slot).png') {
+                    win += 900000;
+                    setTimeout(() => {
+                        showOverlayImage('winner.png', 12000, winnerSound);
+                    }, 500);
+                }
+                // Playboy jurnal
+                else if (symbol === 'playboy_jurnal(symbol_slot).png') {
+                    win += 900000;
+                    setTimeout(() => {
+                        showOverlayImage('sexy_girl.png', 3000, sexyGirlSound);
+                    }, 500);
+                }
+                // You lose - все you_lose
+                else if (symbol === 'you_lose(symbol_slot).png') {
+                    winBalance = 0;
+                    updateBalance();
+                    setTimeout(() => {
+                        showOverlayImage('you_lose.png', 5000, youLoseSound);
+                    }, 500);
+                    return; // Выходим из функции, чтобы не добавлять выигрыш
+                }
+                // Dead head petya - мини игра
+                else if (symbol === 'dead_head_petya(symbol_slot).png') {
+                    setTimeout(() => {
+                        startMinigame();
+                    }, 1000);
+                }
+                // Vodka - все vodka
+                else if (symbol === 'vodka(symbol_slot).png') {
+                    win += 1000;
+                    setTimeout(() => playSound(chinazesSound), 500);
+                }
+                // Strawberry - все strawberry
+                else if (symbol === 'strawberry(symbol_slot).png') {
+                    win += 3000;
+                    setTimeout(() => playSound(yumSound), 500);
+                }
+                // Tuz - все tuz
+                else if (symbol === 'tuz(symbol_slot).png') {
+                    win += 8000;
+                    setTimeout(() => playSound(tuzSound), 500);
+                }
+                // Gun или bloody_knife - все одинаковые
+                else if (symbol === 'gun(symbol_slot).png' || symbol === 'bloody_knife(symbol_slot).png') {
+                    win += 100000;
+                }
+                // Money x3 - все money_x3
+                else if (symbol === 'money_x3(symbol_slot).png') {
+                    win += 50000;
+                }
+                // Money x2 - все money_x2
+                else if (symbol === 'money_x2(symbol_slot).png') {
+                    win += 5000;
+                }
+                // Money x1 - все money_x1
+                else if (symbol === 'money_x1(symbol_slot).png') {
+                    win += 500;
+                }
+            }
+            // Если слоты разные - нет выигрыша
+
+            if (win > 0) {
+                winBalance += win;
+                setTimeout(() => playSound(moneySound), 300);
+            }
+            updateBalance();
+        }
+
+        function spin() {
+            if (isSpinning || balance < 5) {
+                if (balance < 5 && !isSpinning && !minigameActive) {
+                    showGameOver();
+                }
+                return;
+            }
+            if (minigameActive) return;
+
+            isSpinning = true;
+            balance -= 5;
+            updateBalance();
+            document.getElementById('spinBtn').disabled = true;
+
+            const slotImgs = [
+                document.getElementById('slot0'),
+                document.getElementById('slot1'),
+                document.getElementById('slot2')
+            ];
+
+            // Запуск звука вращения
+            mechanicalTickingSound.currentTime = 0;
+            mechanicalTickingSound.play().catch(e => console.log('Ticking error:', e));
+
+            // Анимация вращения
+            slotImgs.forEach(img => img.parentElement.classList.add('spinning'));
+            
+            // Генерация символов с учётом сложности
+            const finalSymbols = generateSymbolsByDifficulty();
+
+            // Остановка слотов по очереди
+            slotImgs.forEach((img, index) => {
+                setTimeout(() => {
+                    img.parentElement.classList.remove('spinning');
+                    img.src = finalSymbols[index];
+                    if (index === 2) {
+                        isSpinning = false;
+                        document.getElementById('spinBtn').disabled = false;
+                        // Остановка звука вращения
+                        mechanicalTickingSound.pause();
+                        mechanicalTickingSound.currentTime = 0;
+                        processWin(finalSymbols);
+                    }
+                }, 500 + index * 600);
+            });
+        }
+
+        function generateSymbolsByDifficulty() {
+            const rand = Math.random();
+            let symbols = [];
+            
+            if (difficulty === 'easy') {
+                // В легком режиме 90% шанс на 3 одинаковых символа
+                if (rand < 0.9) {
+                    const symbol = getRandomSymbol();
+                    symbols = [symbol, symbol, symbol];
+                } else {
+                    symbols = [getRandomSymbol(), getRandomSymbol(), getRandomSymbol()];
+                }
+            } else if (difficulty === 'normal') {
+                // В нормальном режиме 20% шанс на 3 одинаковых символа (иногда)
+                if (rand < 0.2) {
+                    const symbol = getRandomSymbol();
+                    symbols = [symbol, symbol, symbol];
+                } else {
+                    symbols = [getRandomSymbol(), getRandomSymbol(), getRandomSymbol()];
+                }
+            } else { // hard
+                // В сложном режиме только 3% шанс на 3 одинаковых символа (очень редко)
+                if (rand < 0.03) {
+                    const symbol = getRandomSymbol();
+                    symbols = [symbol, symbol, symbol];
+                } else {
+                    symbols = [getRandomSymbol(), getRandomSymbol(), getRandomSymbol()];
+                }
+            }
+            
+            return symbols;
+        }
+
+        function startMinigame() {
+            minigameActive = true;
+            minigameClicks = 0;
+            minigameLevel = 0;
+            minigameTimer = 60;
+            document.getElementById('minigameClicks').textContent = '👊 0/10';
+            document.getElementById('minigameTimer').textContent = '⏱ 60с';
+            document.getElementById('minigameInfo').textContent = 'УБЕЙ ПЕТЮ!';
+            document.getElementById('petyaTarget').src = 'normal_petya.png';
+            
+            // Показываем картинку "убей петю" на 2 секунды с музыкой kill_petya
+            overlayImage.src = 'kill_petya.png';
+            imageOverlay.style.display = 'flex';
+            
+            // Утихаем фоновую музыку
+            if (!bgMusic.paused) {
+                bgMusicPausedForOverlay = true;
+                const fadeOutInterval = setInterval(() => {
+                    if (bgMusic.volume > 0.1) {
+                        bgMusic.volume -= 0.1;
+                    } else {
+                        clearInterval(fadeOutInterval);
+                        bgMusic.pause();
+                    }
+                }, 200);
+            }
+            
+            killPetyaMusic.volume = musicVolume;
+            setTimeout(() => {
+                imageOverlay.style.display = 'none';
+                minigameOverlay.style.display = 'flex';
+                killPetyaMusic.currentTime = 0;
+                killPetyaMusic.play().catch(e => console.log(e));
+                
+                minigameInterval = setInterval(() => {
+                    minigameTimer--;
+                    document.getElementById('minigameTimer').textContent = '⏱ ' + minigameTimer + 'с';
+                    if (minigameTimer <= 0) {
+                        endMinigame(false);
+                    }
+                }, 1000);
+            }, 2000);
+        }
+
+        function hitPetya() {
+            if (!minigameActive) return;
+            
+            minigameClicks++;
+            const petyaImg = document.getElementById('petyaTarget');
+            
+            // Воспроизведение случайного звука боли
+            const randomPain = painSounds[Math.floor(Math.random() * painSounds.length)];
+            playSound(randomPain);
+
+            // Определение уровня
+            if (minigameClicks < 10) {
+                minigameLevel = 0;
+                petyaImg.src = 'pain_petya1level.png';
+                document.getElementById('minigameClicks').textContent = '👊 ' + minigameClicks + '/10';
+            } else if (minigameClicks < 60) {
+                minigameLevel = 1;
+                petyaImg.src = 'pain_petya2level.png';
+                document.getElementById('minigameClicks').textContent = '👊 ' + minigameClicks + '/60';
+            } else if (minigameClicks < 160) {
+                minigameLevel = 2;
+                petyaImg.src = 'pain_petya3level.png';
+                document.getElementById('minigameClicks').textContent = '👊 ' + minigameClicks + '/160';
+            } else {
+                // Победа
+                endMinigame(true);
+            }
+        }
+
+        function endMinigame(won) {
+            minigameActive = false;
+            clearInterval(minigameInterval);
+            killPetyaMusic.pause();
+            killPetyaMusic.currentTime = 0;
+            minigameOverlay.style.display = 'none';
+            
+            // Восстанавливаем фоновую музыку
+            if (bgMusicPausedForOverlay || bgMusic.paused) {
+                bgMusic.volume = 0;
+                bgMusic.play().catch(() => {});
+                bgMusicPausedForOverlay = false;
+                const fadeInInterval = setInterval(() => {
+                    if (bgMusic.volume < musicVolume) {
+                        bgMusic.volume += 0.05;
+                    } else {
+                        clearInterval(fadeInInterval);
+                    }
+                }, 200);
+            }
+            
+            if (won) {
+                winBalance += 1000000;
+                updateBalance();
+                // Показываем death_petya.png сначала, потом winner.png
+                overlayImage.src = 'death_petya.png';
+                imageOverlay.style.display = 'flex';
+                playSound(winnerSound);
+                
+                setTimeout(() => {
+                    overlayImage.src = 'winner.png';
+                }, 2000);
+                
+                setTimeout(() => {
+                    imageOverlay.style.display = 'none';
+                }, 12000);
+            } else {
+                winBalance = 0;
+                updateBalance();
+                showOverlayImage('you_lose.png', 5000, youLoseSound);
+            }
+        }
+
+        // === Обработчики событий ===
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter' && disclaimerOverlay.style.display !== 'none') {
+                event.preventDefault();
+                if (!disclaimerAccepted) {
+                    disclaimerAccepted = true;
+                    playSound(clickSound);
+                    disclaimerOverlay.style.display = 'none';
+                    mainMenu.style.display = 'flex';
+                    // Запускаем музыку меню
+                    currentMusic = mainMenuMusic;
+                    mainMenuMusic.volume = 0;
+                    mainMenuMusic.play().catch(e => console.log(e));
+                    const fadeInInterval = setInterval(() => {
+                        if (mainMenuMusic.volume < musicVolume) {
+                            mainMenuMusic.volume += 0.05;
+                        } else {
+                            clearInterval(fadeInInterval);
+                        }
+                    }, 200);
+                }
+            }
+            if (event.key === 'Escape') {
+                if (minigameActive) {
+                    endMinigame(false);
+                }
+            }
+        });
+
+        document.getElementById('btnPlay').addEventListener('click', () => {
+            playSound(clickSound);
+            difficultyOverlay.style.display = 'flex';
+        });
+
+        document.getElementById('btnEasy').addEventListener('click', () => {
+            difficulty = 'easy';
+            playSound(clickSound);
+            difficultyOverlay.style.display = 'none';
+            startGame();
+        });
+
+        document.getElementById('btnNormal').addEventListener('click', () => {
+            difficulty = 'normal';
+            playSound(clickSound);
+            difficultyOverlay.style.display = 'none';
+            startGame();
+        });
+
+        document.getElementById('btnHard').addEventListener('click', () => {
+            difficulty = 'hard';
+            playSound(clickSound);
+            difficultyOverlay.style.display = 'none';
+            startGame();
+        });
+
+        document.getElementById('btnBackFromDifficulty').addEventListener('click', () => {
+            playSound(clickSound);
+            difficultyOverlay.style.display = 'none';
+        });
+
+        document.getElementById('btnSettings').addEventListener('click', () => {
+            playSound(clickSound);
+            settingsModal.style.display = 'flex';
+        });
+
+        document.getElementById('spinBtn').addEventListener('click', spin);
+
+        document.getElementById('pauseBtn').addEventListener('click', () => {
+            playSound(clickSound);
+            document.getElementById('pauseMusicVolume').value = musicVolume;
+            document.getElementById('pauseSfxVolume').value = sfxVolume;
+            document.getElementById('pauseMusicValue').textContent = Math.round(musicVolume * 100) + '%';
+            document.getElementById('pauseSfxValue').textContent = Math.round(sfxVolume * 100) + '%';
+            pauseModal.style.display = 'flex';
+        });
+
+        document.getElementById('buyMoneyBtn').addEventListener('click', () => {
+            playSound(clickSound);
+            shopModal.style.display = 'flex';
+        });
+
+        document.getElementById('petyaTarget').addEventListener('click', hitPetya);
+
+        // Закрытие модальных окон
+        document.getElementById('closeSettingsModal').addEventListener('click', () => {
+            playSound(clickSound);
+            settingsModal.style.display = 'none';
+        });
+
+        document.getElementById('btnCloseSettings').addEventListener('click', () => {
+            playSound(clickSound);
+            settingsModal.style.display = 'none';
+        });
+
+        document.getElementById('closePauseModal').addEventListener('click', () => {
+            playSound(clickSound);
+            pauseModal.style.display = 'none';
+        });
+
+        document.getElementById('btnContinue').addEventListener('click', () => {
+            playSound(clickSound);
+            pauseModal.style.display = 'none';
+        });
+
+        document.getElementById('btnExitToMenu').addEventListener('click', () => {
+            playSound(clickSound);
+            pauseModal.style.display = 'none';
+            gameScreen.style.display = 'none';
+            mainMenu.style.display = 'flex';
+            minigameActive = false;
+            clearInterval(minigameInterval);
+            killPetyaMusic.pause();
+            minigameOverlay.style.display = 'none';
+            
+            // Останавливаем музыку игры и запускаем музыку меню
+            bgMusic.pause();
+            bgMusic.currentTime = 0;
+            currentMusic = mainMenuMusic;
+            mainMenuMusic.volume = 0;
+            mainMenuMusic.play().catch(e => console.log(e));
+            const fadeInInterval = setInterval(() => {
+                if (mainMenuMusic.volume < musicVolume) {
+                    mainMenuMusic.volume += 0.05;
+                } else {
+                    clearInterval(fadeInInterval);
+                }
+            }, 200);
+        });
+
+        document.getElementById('closeShopModal').addEventListener('click', () => {
+            playSound(clickSound);
+            shopModal.style.display = 'none';
+        });
+
+        // Магазин денег
+        document.querySelectorAll('.shop-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const cost = parseInt(item.dataset.cost);
+                const give = parseInt(item.dataset.give);
+                if (winBalance >= cost) {
+                    winBalance -= cost;
+                    balance += give;
+                    updateBalance();
+                    playSound(moneySound);
+                } else {
+                    alert('Недостаточно выигранных денег!');
+                }
+            });
+        });
+
+        // Слайдеры громкости в настройках
+        document.getElementById('musicVolume').addEventListener('input', (e) => {
+            musicVolume = parseFloat(e.target.value);
+            bgMusic.volume = musicVolume;
+            mainMenuMusic.volume = musicVolume;
+            killPetyaMusic.volume = musicVolume;
+            document.getElementById('musicValue').textContent = Math.round(musicVolume * 100) + '%';
+            // Синхронизируем с паузой
+            document.getElementById('pauseMusicVolume').value = musicVolume;
+            document.getElementById('pauseMusicValue').textContent = Math.round(musicVolume * 100) + '%';
+        });
+
+        document.getElementById('sfxVolume').addEventListener('input', (e) => {
+            sfxVolume = parseFloat(e.target.value);
+            document.getElementById('sfxValue').textContent = Math.round(sfxVolume * 100) + '%';
+            // Синхронизируем с паузой
+            document.getElementById('pauseSfxVolume').value = sfxVolume;
+            document.getElementById('pauseSfxValue').textContent = Math.round(sfxVolume * 100) + '%';
+        });
+
+        // Слайдеры громкости в паузе
+        document.getElementById('pauseMusicVolume').addEventListener('input', (e) => {
+            musicVolume = parseFloat(e.target.value);
+            bgMusic.volume = musicVolume;
+            mainMenuMusic.volume = musicVolume;
+            killPetyaMusic.volume = musicVolume;
+            document.getElementById('pauseMusicValue').textContent = Math.round(musicVolume * 100) + '%';
+            // Синхронизируем с настройками
+            document.getElementById('musicVolume').value = musicVolume;
+            document.getElementById('musicValue').textContent = Math.round(musicVolume * 100) + '%';
+        });
+
+        document.getElementById('pauseSfxVolume').addEventListener('input', (e) => {
+            sfxVolume = parseFloat(e.target.value);
+            document.getElementById('pauseSfxValue').textContent = Math.round(sfxVolume * 100) + '%';
+            // Синхронизируем с настройками
+            document.getElementById('sfxVolume').value = sfxVolume;
+            document.getElementById('sfxValue').textContent = Math.round(sfxVolume * 100) + '%';
+        });
+
+        // GAME OVER функции
+        function showGameOver() {
+            gameoverOverlay.style.display = 'flex';
+            bgMusic.pause();
+            bgMusic.currentTime = 0;
+        }
+
+        document.getElementById('btnRetry').addEventListener('click', () => {
+            playSound(clickSound);
+            gameoverOverlay.style.display = 'none';
+            balance = 1000;
+            winBalance = 0;
+            updateBalance();
+            currentMusic = bgMusic;
+            bgMusic.volume = 0;
+            bgMusic.play().catch(e => console.log(e));
+            const fadeInInterval = setInterval(() => {
+                if (bgMusic.volume < musicVolume) {
+                    bgMusic.volume += 0.05;
+                } else {
+                    clearInterval(fadeInInterval);
+                }
+            }, 200);
+        });
+
+        document.getElementById('btnExitGame').addEventListener('click', () => {
+            playSound(clickSound);
+            gameoverOverlay.style.display = 'none';
+            gameScreen.style.display = 'none';
+            mainMenu.style.display = 'flex';
+            minigameActive = false;
+            clearInterval(minigameInterval);
+            killPetyaMusic.pause();
+            minigameOverlay.style.display = 'none';
+            
+            // Останавливаем музыку игры и запускаем музыку меню
+            bgMusic.pause();
+            bgMusic.currentTime = 0;
+            currentMusic = mainMenuMusic;
+            mainMenuMusic.volume = 0;
+            mainMenuMusic.play().catch(e => console.log(e));
+            const fadeInInterval = setInterval(() => {
+                if (mainMenuMusic.volume < musicVolume) {
+                    mainMenuMusic.volume += 0.05;
+                } else {
+                    clearInterval(fadeInInterval);
+                }
+            }, 200);
+        });
+
+        const gameoverOverlay = document.getElementById('gameoverOverlay');
+
+        function startGame() {
+            mainMenu.style.display = 'none';
+            gameScreen.style.display = 'flex';
+            balance = 1000;
+            winBalance = 0;
+            updateBalance();
+            createGarlands();
+            initSoundVolumes(); // Инициализация громкости звуков
+            
+            // Останавливаем музыку меню и запускаем фоновую музыку игры
+            if (currentMusic === mainMenuMusic) {
+                mainMenuMusic.pause();
+                mainMenuMusic.currentTime = 0;
+            }
+            currentMusic = bgMusic;
+            bgMusic.volume = 0;
+            bgMusic.play().catch(e => console.log(e));
+            const fadeInInterval = setInterval(() => {
+                if (bgMusic.volume < musicVolume) {
+                    bgMusic.volume += 0.05;
+                } else {
+                    clearInterval(fadeInInterval);
+                }
+            }, 200);
+            
+            // Установка начальных слотов
+            for (let i = 0; i < 3; i++) {
+                document.getElementById('slot' + i).src = symbols[Math.floor(Math.random() * symbols.length)];
+            }
+        }
+
+        function init() {
+            createSparks();
+            disclaimerOverlay.style.display = 'flex';
+            mainMenu.style.display = 'none';
+            gameScreen.style.display = 'none';
+            
+            document.getElementById('musicValue').textContent = '50%';
+            document.getElementById('sfxValue').textContent = '70%';
+        }
+
+        window.addEventListener('load', init);
+
+        document.getElementById('logo').addEventListener('error', function() {
+            this.style.display = 'none';
+            const logoText = document.createElement('div');
+            logoText.style.cssText = 'font-size:72px;color:#ffd700;text-shadow:0 0 30px rgba(255,215,0,0.9);font-weight:bold;letter-spacing:8px;animation:logoPulse 2s infinite ease-in-out;text-align:center;';
+            logoText.textContent = '🎰 МАКС ВЕГАС 🎰';
+            this.parentNode.insertBefore(logoText, this);
+        });
+    </script>
+</body>
+</html>
